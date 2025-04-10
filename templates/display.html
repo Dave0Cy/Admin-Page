@@ -1,0 +1,20 @@
+{# display.html #}
+{% extends "dashboard.html" %}
+
+{% block title %}
+  Upcoming Events
+{% endblock %}
+
+{% block content %}
+  <h2>Upcoming Events</h2>
+  {% if events %}
+    {% for event in events %}
+      <h4>{{ event.description }}</h4>
+      <p>{{ event.date }} @ {{ event.time }} — {{ event.location }}</p>
+      <img src="data:image/png;base64,{{ event.image }}" style="max-width: 200px;">
+      <hr>
+    {% endfor %}
+  {% else %}
+    <p>No upcoming events.</p>
+  {% endif %}
+{% endblock %}
