@@ -1,60 +1,177 @@
-{# input.html #}
-{% extends "dashboard.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Events</title>
+</head>
+<body>
+    <h2>Upcoming Event Details</h2>
 
-{% block title %}
-  Edit Events
-{% endblock %}
+    <input type="text" id="eventDescription" placeholder="Enter event description" /><br><br>
+    <input type="date" id="eventDate" /><br><br>
+    <input type="time" id="eventTime" /><br><br>
+    <input type="text" id="eventLocation" placeholder="Enter event location" /><br><br>
+    <input type="file" id="eventImage" accept="image/*" onchange="previewImage()" /><br><br>
+    <img id="imagePreview" src="" alt="Image Preview" style="max-width: 200px; display: none;"><br><br>
 
-{% block content %}
-  <!-- Everything below is inserted into the "main-content" area of dashboard.html -->
-  <h2>Upload New Upcoming Event</h2>
-  <form action="/save-event" method="POST" enctype="multipart/form-data">
-      <input type="hidden" name="is_past" value="false">
-      <input type="text" name="description" placeholder="Event description" required><br><br>
-      <input type="date" name="date" required><br><br>
-      <input type="time" name="time" required><br><br>
-      <input type="text" name="location" placeholder="Location" required><br><br>
-      <input type="file" name="image" accept="image/*" required><br><br>
-      <button type="submit">Save Upcoming Event</button>
-  </form>
+    <button onclick="saveEvent(false)">Save Upcoming Event</button>
 
-  <h2>Upload Newsletter (Past Event)</h2>
-  <form action="/save-event" method="POST" enctype="multipart/form-data">
-      <input type="hidden" name="is_past" value="true">
-      <input type="text" name="description" placeholder="Past event description" required><br><br>
-      <input type="file" name="image" accept="image/*" required><br><br>
-      <button type="submit">Save Past Event</button>
-  </form>
+    <h2>Past Event Details</h2>
 
-  <hr>
-  <h2>Manage Existing Events</h2>
-  <div id="eventsList"></div>
+    <input type="text" id="pastEventDescription" placeholder="Enter past event description" /><br><br>
+    <input type="file" id="pastEventImage" accept="image/*" onchange="previewPastImage()" /><br><br>
+    <img id="pastImagePreview" src="" alt="Image Preview" style="max-width: 200px; display: none;"><br><br>
 
-  <script>
-      async function loadAllEvents() {
-          const res = await fetch('/api/events/all');
-          const events = await res.json();
+    <button onclick="saveEvent(true)">Save Past Event</button>
 
-          const container = document.getElementById("eventsList");
-          if (!Array.isArray(events)) {
-              container.innerHTML = "<p>Error loading events.</p>";
-              return;
-          }
+    <h3>Upcoming Events:</h3>
+    <div id="eventsList"></div>
 
-          container.innerHTML = events.map(event => `
-              <div>
-                  <h4>${event.description}</h4>
-                  ${event.date ? `<p>${event.date} @ ${event.time} — ${event.location}</p>` : ""}
-                  <img src="data:image/png;base64,${event.image}" style="max-width: 200px;"><br>
-                  <form action="/delete-event/${event._id}" method="POST" style="display:inline;">
-                      <button type="submit">Delete</button>
-                  </form>
-                  <a href="/edit-event/${event._id}">Edit</a>
-                  <hr>
-              </div>
-          `).join("");
-      }
+    <h3>Past Events:</h3>
+    <div id="pastEventsList"></div>
 
-      window.onload = loadAllEvents;
-  </script>
-{% endblock %}
+    <script>
+        let editingEventId = null;
+        let editingIsPast = false;
+
+        window.onload = function() {
+            displayEvents();
+            displayPastEvents();
+        };
+
+        function previewImage() {
+            const file = document.getElementById("eventImage").files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById("imagePreview").src = e.target.result;
+                document.getElementById("imagePreview").style.display = "block";
+            };
+            if (file) reader.readAsDataURL(file);
+        }
+
+        function previewPastImage() {
+            const file = document.getElementById("pastEventImage").files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById("pastImagePreview").src = e.target.result;
+                document.getElementById("pastImagePreview").style.display = "block";
+            };
+            if (file) reader.readAsDataURL(file);
+        }
+
+        function saveEvent(isPast) {
+            const desc = document.getElementById(isPast ? "pastEventDescription" : "eventDescription").value;
+            const date = isPast ? null : document.getElementById("eventDate").value;
+            const time = isPast ? null : document.getElementById("eventTime").value;
+            const loc = isPast ? null : document.getElementById("eventLocation").value;
+            const imgFile = document.getElementById(isPast ? "pastEventImage" : "eventImage").files[0];
+            const key = isPast ? "pastEvents" : "events";
+
+            if (!desc || (!imgFile && editingEventId === null) || (!isPast && (!date || !time || !loc))) {
+                alert("Please fill in all required fields.");
+                return;
+            }
+
+            let events = JSON.parse(localStorage.getItem(key)) || [];
+
+            function finalize(imageData) {
+                if (editingEventId !== null) {
+                    const idx = events.findIndex(e => e.id === editingEventId);
+                    if (idx !== -1) {
+                        events[idx].description = desc;
+                        if (!isPast) {
+                            events[idx].date = date;
+                            events[idx].time = time;
+                            events[idx].location = loc;
+                        }
+                        if (imageData) events[idx].image = imageData;
+                    }
+                    editingEventId = null;
+                    editingIsPast = false;
+                } else {
+                    const newEvent = { id: Date.now(), description: desc, image: imageData };
+                    if (!isPast) {
+                        newEvent.date = date;
+                        newEvent.time = time;
+                        newEvent.location = loc;
+                    }
+                    events.push(newEvent);
+                }
+                localStorage.setItem(key, JSON.stringify(events));
+                clearInputs(isPast);
+                isPast ? displayPastEvents() : displayEvents();
+            }
+
+            if (imgFile) {
+                const reader = new FileReader();
+                reader.onload = e => finalize(e.target.result);
+                reader.readAsDataURL(imgFile);
+            } else {
+                finalize(null);
+            }
+        }
+
+        function clearInputs(isPast) {
+            const prefix = isPast ? "pastEvent" : "event";
+            ["Description", "Date", "Time", "Location"].forEach(field => {
+                const el = document.getElementById(prefix + field);
+                if (el) el.value = "";
+            });
+            document.getElementById(prefix + "Image").value = "";
+            document.getElementById(prefix + "ImagePreview").style.display = "none";
+        }
+
+        function displayEvents() {
+            let events = JSON.parse(localStorage.getItem("events")) || [];
+            document.getElementById("eventsList").innerHTML = events.map(event => `
+                <h4>${event.description}</h4>
+                <strong>Date:</strong> ${event.date} <strong>Time:</strong> ${event.time}<br>
+                <strong>Location:</strong> ${event.location}<br>
+                <img src="${event.image}" style="max-width: 200px;"><br>
+                <button onclick="editEvent(${event.id}, false)">Edit</button>
+                <button onclick="deleteEvent(${event.id}, false)">Delete</button>
+                <hr>
+            `).join("") || "<p>No upcoming events.</p>";
+        }
+
+        function displayPastEvents() {
+            let events = JSON.parse(localStorage.getItem("pastEvents")) || [];
+            document.getElementById("pastEventsList").innerHTML = events.map(event => `
+                <h4>${event.description}</h4>
+                <img src="${event.image}" style="max-width: 200px;"><br>
+                <button onclick="editEvent(${event.id}, true)">Edit</button>
+                <button onclick="deleteEvent(${event.id}, true)">Delete</button>
+                <hr>
+            `).join("") || "<p>No past events.</p>";
+        }
+
+        function deleteEvent(id, isPast) {
+            const key = isPast ? "pastEvents" : "events";
+            let events = JSON.parse(localStorage.getItem(key)) || [];
+            events = events.filter(e => e.id !== id);
+            localStorage.setItem(key, JSON.stringify(events));
+            isPast ? displayPastEvents() : displayEvents();
+        }
+
+        function editEvent(id, isPast) {
+            const key = isPast ? "pastEvents" : "events";
+            const events = JSON.parse(localStorage.getItem(key)) || [];
+            const event = events.find(e => e.id === id);
+            if (!event) return;
+            editingEventId = id;
+            editingIsPast = isPast;
+
+            const prefix = isPast ? "pastEvent" : "event";
+            document.getElementById(prefix + "Description").value = event.description;
+            if (!isPast) {
+                document.getElementById(prefix + "Date").value = event.date;
+                document.getElementById(prefix + "Time").value = event.time;
+                document.getElementById(prefix + "Location").value = event.location;
+            }
+            document.getElementById(prefix + "ImagePreview").src = event.image;
+            document.getElementById(prefix + "ImagePreview").style.display = "block";
+        }
+    </script>
+</body>
+</html>

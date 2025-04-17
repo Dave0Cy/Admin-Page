@@ -1,20 +1,30 @@
-{# display.html #}
-{% extends "dashboard.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upcoming Events</title>
+</head>
+<body>
+    <h2>Upcoming Events</h2>
 
-{% block title %}
-  Upcoming Events
-{% endblock %}
+    <div id="eventsList"></div>
 
-{% block content %}
-  <h2>Upcoming Events</h2>
-  {% if events %}
-    {% for event in events %}
-      <h4>{{ event.description }}</h4>
-      <p>{{ event.date }} @ {{ event.time }} — {{ event.location }}</p>
-      <img src="data:image/png;base64,{{ event.image }}" style="max-width: 200px;">
-      <hr>
-    {% endfor %}
-  {% else %}
-    <p>No upcoming events.</p>
-  {% endif %}
-{% endblock %}
+    <script>
+        window.onload = function() {
+            displayEvents();
+        };
+
+        function displayEvents() {
+            let events = JSON.parse(localStorage.getItem("events")) || [];
+            document.getElementById("eventsList").innerHTML = events.length === 0 ? "<p>No upcoming events.</p>" : events.map(event => `
+                <h4>${event.description}</h4>
+                <strong>Date:</strong> ${event.date} <strong>Time:</strong> ${event.time}<br>
+                <strong>Location:</strong> ${event.location}<br>
+                <img src="${event.image}" style="max-width: 200px;"><br>
+                <hr>
+            `).join("");
+        }
+    </script>
+</body>
+</html>
