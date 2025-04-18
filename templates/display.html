@@ -1,30 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upcoming Events</title>
-</head>
-<body>
-    <h2>Upcoming Events</h2>
+{% extends "dashboard.html" %}
 
-    <div id="eventsList"></div>
+{% block title %}
+  Upcoming Events
+{% endblock %}
 
-    <script>
-        window.onload = function() {
-            displayEvents();
-        };
+{% block content %}
+<h2>Upcoming Events</h2>
+<div id="eventsList"></div>
 
-        function displayEvents() {
-            let events = JSON.parse(localStorage.getItem("events")) || [];
-            document.getElementById("eventsList").innerHTML = events.length === 0 ? "<p>No upcoming events.</p>" : events.map(event => `
-                <h4>${event.description}</h4>
-                <strong>Date:</strong> ${event.date} <strong>Time:</strong> ${event.time}<br>
-                <strong>Location:</strong> ${event.location}<br>
-                <img src="${event.image}" style="max-width: 200px;"><br>
-                <hr>
-            `).join("");
-        }
-    </script>
-</body>
-</html>
+<script>
+  window.onload = function () {
+    displayEvents();
+  };
+
+  function displayEvents() {
+    const events = JSON.parse(localStorage.getItem("events")) || [];
+    const container = document.getElementById("eventsList");
+
+    if (events.length === 0) {
+      container.innerHTML = "<p>No upcoming events.</p>";
+      return;
+    }
+
+    container.innerHTML = events.map(event => `
+      <div class="event">
+        <h4>${event.description}</h4>
+        ${event.descriptionSpanish ? `<p><em>${event.descriptionSpanish}</em></p>` : ""}
+        <p><strong>Date:</strong> ${event.date}</p>
+        <p><strong>Time:</strong> ${event.time}</p>
+        <p><strong>Location:</strong> ${event.location}</p>
+        <img src="${event.image}" alt="Event Image" style="max-width: 200px;">
+      </div>
+    `).join("");
+  }
+</script>
+{% endblock %}
