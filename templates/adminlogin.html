@@ -87,12 +87,16 @@
 </head>
 <body>
     <div class="login-container">
-        <h2>Admin Login</h2>
-        <form method="POST" action="/login">
-            <input type="text" name="username" placeholder="Username" required>
-            <input type="password" name="password" placeholder="Password" required>
-            <button type="submit">Login</button>
-        </form>
+        <h2>Enter Admin Access Code</h2>
+        <form method="POST">
+        <input 
+            type="password" 
+            name="admin_code" 
+            placeholder="Enter code" 
+            required 
+            />
+             <button type="submit"> Login </button>
+         </form>
 
         <div class="messages">
             {% with messages = get_flashed_messages(with_categories=true) %}
