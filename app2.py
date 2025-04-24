@@ -1,10 +1,13 @@
-from flask import Flask, render_template, request, redirect, session, url_for, flash
+from flask import Flask, app, render_template, request, redirect, session, url_for, flash
 from flask_pymongo import PyMongo
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import timedelta
 import base64
 import os
 from bson import json_util
+from flask_bcrypt import Bcrypt
+
+
 
 app2 = Flask(__name__, template_folder=os.path.join(os.path.dirname(__file__), 'templates'))
 app2.secret_key = "saidfl3022dlksfj"
@@ -16,32 +19,41 @@ app2.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
 app2.config["MONGO_URI"] = "mongodb+srv://admin-edu:SurveyAdmin@cluster0.ccn4g.mongodb.net/myDatabase?retryWrites=true&w=majority"
 
 mongo = PyMongo(app2)
+bcrypt = Bcrypt(app2)
 
 @app2.route('/')
 def home():
     return redirect(url_for('login'))
 
+
+
 @app2.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        # Use email as username
-        user = mongo.db.users.find_one({"email": request.form["username"]})
-        if user and check_password_hash(user["password"], request.form["password"]):
-            session["username"] = request.form["username"]
-            return redirect(url_for("dashboard"))
+        entered_code = request.form["admin_code"]
+
+        # Look up the admin code in MongoDB (assuming it's stored under _id "admin")
+        admin = mongo.db["_admin_"].find_one({"_id": "admin"})
+
+        if admin and bcrypt.check_password_hash(admin["admin_code"], entered_code):
+            session["admin_logged_in"] = True
+            return redirect(url_for("dashboard"))  # or whatever your dashboard route is
         else:
-            flash("Invalid credentials", "danger")
+            flash("Invalid admin code", "danger")
+
     return render_template("adminlogin.html")
+
+
 
 @app2.route('/dashboard')
 def dashboard():
-    if "username" not in session:
+    if "admin_logged_in" not in session:
         return redirect(url_for("login"))
     return render_template("dashboard.html")
 
 @app2.route('/edit')
 def edit_events():
-    if "username" not in session:
+    if "admin_logged_in" not in session:
         return redirect(url_for("login"))
     events = list(mongo.db.events.find())
     return render_template("input.html", events=events)
@@ -62,7 +74,7 @@ def display():
 
 @app2.route('/logout')
 def logout():
-    session.pop("username", None)
+    session.pop("admin_logged_in", None)
     return redirect(url_for("login"))
 
 @app2.route('/newsletter')
@@ -81,7 +93,7 @@ def newsletter():
 
 @app2.route('/save-event', methods=['POST'])
 def save_event():
-    if "username" not in session:
+    if "admin_logged_in" not in session:
         flash("You must be logged in to add an event.", "danger")
         print("User not logged in.")
         return redirect(url_for("login"))
@@ -162,4 +174,4 @@ def get_past_events():
 
 
 if __name__ == "__main__":
-    app2.run()
+    app2.run(debug=True)
