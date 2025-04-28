@@ -1,37 +1,23 @@
-{# newsletter.html #}
 {% extends "dashboard.html" %}
-
-{% block title %}
-  Newsletter - Past Events
-{% endblock %}
+{% block title %}Past Events{% endblock %}
 
 {% block content %}
   <h2>Past Events</h2>
-  <div id="pastEventsList"></div>
 
-  <script>
-    function loadPastEvents() {
-      try {
-        const events = JSON.parse(localStorage.getItem("pastEvents")) || [];
-        const container = document.getElementById("pastEventsList");
-  
-        if (!events.length) {
-          container.innerHTML = "<p>No past events.</p>";
-          return;
-        }
-  
-        container.innerHTML = events.map(event => `
-          <h4>${event.description}</h4>
-          <img src="${event.image}" style="max-width: 200px;">
-          <hr>
-        `).join("");
-      } catch (error) {
-        console.error("Error loading past events:", error);
-        document.getElementById("pastEventsList").innerHTML = "<p>Error loading past events.</p>";
-      }
-    }
-  
-    window.onload = loadPastEvents;
-  </script>
-  
+  {% if events %}
+    {% for event in events %}
+      <h4>{{ event.description }}</h4>
+      {% if event.descriptionSpanish %}
+        <p><em>{{ event.descriptionSpanish }}</em></p>
+      {% endif %}
+      {% if event.date %}
+        <p>{{ event.date }} @ {{ event.time }} — {{ event.location }}</p>
+      {% endif %}
+      <img src="data:image/png;base64,{{ event.image }}" style="max-width:200px;">
+      <hr>
+    {% endfor %}
+  {% else %}
+    <p>No past events.</p>
+  {% endif %}
 {% endblock %}
+

@@ -1,0 +1,99 @@
+{% extends "dashboard.html" %}
+{% block title %}Email Settings{% endblock %}
+{% block content %}
+
+<style>
+  .settings-flex {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .settings-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    flex: 1;
+    min-width: 250px;
+    padding: 1rem;
+  }
+  .settings-card h2 {
+    margin-top: 0;
+    font-size: 1.25rem;
+  }
+  .settings-card label {
+    font-weight: bold;
+  }
+  .settings-card input[type="text"],
+  .settings-card textarea {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  .settings-card .actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+</style>
+
+<div class="settings-flex">
+
+  <!-- Custom Email -->
+  <div class="settings-card">
+    <h2>Send Custom Email Now</h2>
+    <form method="POST" action="{{ url_for('send_custom_email') }}">
+      <label for="custom_subject">Subject</label><br>
+      <input type="text" name="custom_subject" id="custom_subject" required><br>
+      <label for="custom_body">Body</label><br>
+      <textarea name="custom_body" id="custom_body" rows="5" required></textarea><br>
+      <button type="submit">Send to All Opt-In Users</button>
+    </form>
+  </div>
+
+  <!-- New Event Template -->
+  <div class="settings-card">
+    <h2>New Event Email</h2>
+    <form method="POST" action="{{ url_for('update_email_setting') }}">
+      <input type="hidden" name="type" value="new_event">
+      <label for="subject_new">Subject</label><br>
+      <input type="text" name="subject" id="subject_new"
+             value="{{ settings['new_event'].subject }}"><br>
+      <label for="body_new">Body</label><br>
+      <textarea name="body" id="body_new" rows="5">{{ settings['new_event'].body }}</textarea><br>
+      <div class="actions">
+        <button type="submit">Save</button>
+        <label>
+          Auto-Send
+          <input type="checkbox" name="enabled"
+                 {% if settings['new_event'].enabled %}checked{% endif %}>
+        </label>
+      </div>
+    </form>
+  </div>
+
+  <!-- Past Event Template -->
+  <div class="settings-card">
+    <h2>Newsletter Notification</h2>
+    <form method="POST" action="{{ url_for('update_email_setting') }}">
+      <input type="hidden" name="type" value="past_event_added">
+      <label for="subject_past">Subject</label><br>
+      <input type="text" name="subject" id="subject_past"
+             value="{{ settings['past_event_added'].subject }}"><br>
+      <label for="body_past">Body</label><br>
+      <textarea name="body" id="body_past" rows="5">{{ settings['past_event_added'].body }}</textarea><br>
+      <div class="actions">
+        <button type="submit">Save</button>
+        <label>
+          Auto-Send
+          <input type="checkbox" name="enabled"
+                 {% if settings['past_event_added'].enabled %}checked{% endif %}>
+        </label>
+      </div>
+    </form>
+  </div>
+
+</div>
+
+{% endblock %}

@@ -1,184 +1,208 @@
+{# templates/input.html #}
 {% extends "dashboard.html" %}
-
-{% block title %}
-  Edit Events
-{% endblock %}
+{% block title %}Edit Events{% endblock %}
 
 {% block content %}
+<div class="flex-container">
+  <!-- Upcoming Events Panel -->
+  <div class="card">
+    <h2>Manage Upcoming Events</h2>
+    <form method="POST"
+          action="{{ url_for('save_event') }}"
+          enctype="multipart/form-data"
+          id="upcomingForm">
+      <input type="hidden" name="event_id" id="event_id">
 
-<h2>Upcoming Event Details</h2>
+      <label>Description (English)</label><br>
+      <input type="text" name="description" id="description" required><br><br>
 
-<input type="text" id="eventDescription" placeholder="Enter event description (English)" /><br><br>
-<input type="text" id="eventDescriptionSpanish" placeholder="Enter event description (Spanish)" /><br><br>
-<input type="date" id="eventDate" /><br><br>
-<input type="time" id="eventTime" /><br><br>
-<input type="text" id="eventLocation" placeholder="Enter event location" /><br><br>
-<input type="file" id="eventImage" accept="image/*" onchange="previewImage()" /><br><br>
-<img id="imagePreview" src="" alt="Image Preview" style="max-width: 200px; display: none;"><br><br>
+      <label>Descripción (Español)</label><br>
+      <input type="text" name="descriptionSpanish"
+             id="descriptionSpanish"><br><br>
 
-<button onclick="saveEvent(false)">Save Upcoming Event</button>
+      <label>Date</label><br>
+      <input type="date" name="date" id="date" required><br><br>
 
-<h2>Past Event Details</h2>
+      <label>Time</label><br>
+      <input type="time" name="time" id="time" required><br><br>
 
-<input type="text" id="pastEventDescription" placeholder="Enter past event description" /><br><br>
-<input type="file" id="pastEventImage" accept="image/*" onchange="previewPastImage()" /><br><br>
-<img id="pastImagePreview" src="" alt="Image Preview" style="max-width: 200px; display: none;"><br><br>
+      <label>Location</label><br>
+      <input type="text" name="location" id="location" required><br><br>
 
-<button onclick="saveEvent(true)">Save Past Event</button>
+      <label>Image (jpg/png)</label><br>
+      <input type="file" name="image" id="image"><br><br>
 
-<h3>Upcoming Events:</h3>
-<div id="eventsList"></div>
+      <button type="submit" id="submitUpcomingBtn">Create Event</button>
+      <button type="button" id="cancelUpcomingBtn" style="display:none;">
+        Cancel
+      </button>
+    </form>
 
-<h3>Past Events:</h3>
-<div id="pastEventsList"></div>
+    <hr>
+    <h3>Existing Upcoming Events</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>Español</th>
+          <th>Date @ Time</th>
+          <th>Location</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for ev in events %}
+        <tr data-id="{{ ev._id }}">
+          <td class="u-desc">{{ ev.description }}</td>
+          <td class="u-desc-es">{{ ev.descriptionSpanish }}</td>
+          <td>{{ ev.date }} @ {{ ev.time }}</td>
+          <td>{{ ev.location }}</td>
+          <td>
+            <button class="editUpcomingBtn">Edit</button>
+            <form method="POST"
+                  action="{{ url_for('delete_event', id=ev._id) }}"
+                  style="display:inline;"
+                  onsubmit="return confirm('Delete this event?');">
+              <button type="submit">Delete</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
-  <script>
-    let editingEventId = null;
-    let editingIsPast = false;
+  <!-- Past Events Panel -->
+  <div class="card">
+    <h2>Manage Past Events</h2>
+    <form method="POST"
+          action="{{ url_for('save_past_event') }}"
+          enctype="multipart/form-data"
+          id="pastForm">
+      <input type="hidden" name="past_event_id" id="past_event_id">
 
-    window.onload = function () {
-      displayEvents();
-      displayPastEvents();
+      <label>Description (English)</label><br>
+      <input type="text" name="descriptionPast"
+             id="descriptionPast" required><br><br>
+
+      <label>Descripción (Español)</label><br>
+      <input type="text" name="descriptionSpanishPast"
+             id="descriptionSpanishPast"><br><br>
+
+      <label>Image (jpg/png)</label><br>
+      <input type="file" name="imagePast" id="imagePast"><br><br>
+
+      <button type="submit" id="submitPastBtn">Create Past Event</button>
+      <button type="button" id="cancelPastBtn" style="display:none;">
+        Cancel
+      </button>
+    </form>
+
+    <hr>
+    <h3>Existing Past Events</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>Español</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for ev in past_events %}
+        <tr data-id="{{ ev._id }}">
+          <td class="p-desc">{{ ev.description }}</td>
+          <td class="p-desc-es">{{ ev.descriptionSpanish }}</td>
+          <td>
+            <button class="editPastBtn">Edit</button>
+            <form method="POST"
+                  action="{{ url_for('delete_past_event', id=ev._id) }}"
+                  style="display:inline;"
+                  onsubmit="return confirm('Delete this past event?');">
+              <button type="submit">Delete</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<style>
+  .flex-container {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+  }
+  .card {
+    flex: 1;
+    background: #f9f9f9;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.1);
+  }
+  .card h2 { margin-top: 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.5rem;
+  }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 0.5rem;
+    text-align: left;
+  }
+  th { background: #eee; }
+</style>
+
+<script>
+  // Upcoming edit/cancel logic
+  const upForm   = document.getElementById('upcomingForm');
+  const subUp    = document.getElementById('submitUpcomingBtn');
+  const canUp    = document.getElementById('cancelUpcomingBtn');
+  document.querySelectorAll('.editUpcomingBtn').forEach(btn => {
+    btn.onclick = e => {
+      const row = e.target.closest('tr');
+      document.getElementById('event_id').value        = row.dataset.id;
+      document.getElementById('description').value     = row.querySelector('.u-desc').innerText;
+      document.getElementById('descriptionSpanish').value =
+        row.querySelector('.u-desc-es').innerText;
+      const [d,t] = row.cells[2].innerText.split(' @ ');
+      document.getElementById('date').value = d;
+      document.getElementById('time').value = t;
+      document.getElementById('location').value = row.cells[3].innerText;
+      subUp.innerText      = 'Update Event';
+      canUp.style.display  = 'inline';
     };
+  });
+  canUp.onclick = () => {
+    upForm.reset();
+    document.getElementById('event_id').value = '';
+    subUp.innerText     = 'Create Event';
+    canUp.style.display = 'none';
+  };
 
-    function previewImage() {
-      const file = document.getElementById("eventImage").files[0];
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        document.getElementById("imagePreview").src = e.target.result;
-        document.getElementById("imagePreview").style.display = "block";
-      };
-      if (file) reader.readAsDataURL(file);
-    }
-
-    function previewPastImage() {
-      const file = document.getElementById("pastEventImage").files[0];
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        document.getElementById("pastImagePreview").src = e.target.result;
-        document.getElementById("pastImagePreview").style.display = "block";
-      };
-      if (file) reader.readAsDataURL(file);
-    }
-
-    function saveEvent(isPast) {
-      const desc = document.getElementById(isPast ? "pastEventDescription" : "eventDescription").value;
-      const descSpanish = isPast ? "" : document.getElementById("eventDescriptionSpanish").value;
-      const date = isPast ? null : document.getElementById("eventDate").value;
-      const time = isPast ? null : document.getElementById("eventTime").value;
-      const loc = isPast ? null : document.getElementById("eventLocation").value;
-      const imgFile = document.getElementById(isPast ? "pastEventImage" : "eventImage").files[0];
-      const key = isPast ? "pastEvents" : "events";
-
-      if (!desc || (!imgFile && editingEventId === null) || (!isPast && (!date || !time || !loc))) {
-        alert("Please fill in all required fields.");
-        return;
-      }
-
-      let events = JSON.parse(localStorage.getItem(key)) || [];
-
-      function finalize(imageData) {
-        if (editingEventId !== null) {
-          const idx = events.findIndex(e => e.id === editingEventId);
-          if (idx !== -1) {
-            events[idx].description = desc;
-            if (!isPast) {
-              events[idx].descriptionSpanish = descSpanish;
-              events[idx].date = date;
-              events[idx].time = time;
-              events[idx].location = loc;
-            }
-            if (imageData) events[idx].image = imageData;
-          }
-          editingEventId = null;
-          editingIsPast = false;
-        } else {
-          const newEvent = { id: Date.now(), description: desc, image: imageData };
-          if (!isPast) {
-            newEvent.descriptionSpanish = descSpanish;
-            newEvent.date = date;
-            newEvent.time = time;
-            newEvent.location = loc;
-          }
-          events.push(newEvent);
-        }
-
-        localStorage.setItem(key, JSON.stringify(events));
-        clearInputs(isPast);
-        isPast ? displayPastEvents() : displayEvents();
-      }
-
-      if (imgFile) {
-        const reader = new FileReader();
-        reader.onload = e => finalize(e.target.result);
-        reader.readAsDataURL(imgFile);
-      } else {
-        finalize(null);
-      }
-    }
-
-    function clearInputs(isPast) {
-      const prefix = isPast ? "pastEvent" : "event";
-      ["Description", "Date", "Time", "Location"].forEach(field => {
-        const el = document.getElementById(prefix + field);
-        if (el) el.value = "";
-      });
-      if (!isPast) document.getElementById("eventDescriptionSpanish").value = "";
-      document.getElementById(prefix + "Image").value = "";
-      document.getElementById(prefix + "ImagePreview").style.display = "none";
-    }
-
-    function displayEvents() {
-      let events = JSON.parse(localStorage.getItem("events")) || [];
-      document.getElementById("eventsList").innerHTML = events.map(event => `
-        <h4>${event.description}</h4>
-        ${event.descriptionSpanish ? `<p><em>${event.descriptionSpanish}</em></p>` : ""}
-        <strong>Date:</strong> ${event.date} <strong>Time:</strong> ${event.time}<br>
-        <strong>Location:</strong> ${event.location}<br>
-        <img src="${event.image}" style="max-width: 200px;"><br>
-        <button onclick="editEvent(${event.id}, false)">Edit</button>
-        <button onclick="deleteEvent(${event.id}, false)">Delete</button>
-        <hr>
-      `).join("") || "<p>No upcoming events.</p>";
-    }
-
-    function displayPastEvents() {
-      let events = JSON.parse(localStorage.getItem("pastEvents")) || [];
-      document.getElementById("pastEventsList").innerHTML = events.map(event => `
-        <h4>${event.description}</h4>
-        <img src="${event.image}" style="max-width: 200px;"><br>
-        <button onclick="editEvent(${event.id}, true)">Edit</button>
-        <button onclick="deleteEvent(${event.id}, true)">Delete</button>
-        <hr>
-      `).join("") || "<p>No past events.</p>";
-    }
-
-    function deleteEvent(id, isPast) {
-      const key = isPast ? "pastEvents" : "events";
-      let events = JSON.parse(localStorage.getItem(key)) || [];
-      events = events.filter(e => e.id !== id);
-      localStorage.setItem(key, JSON.stringify(events));
-      isPast ? displayPastEvents() : displayEvents();
-    }
-
-    function editEvent(id, isPast) {
-      const key = isPast ? "pastEvents" : "events";
-      const events = JSON.parse(localStorage.getItem(key)) || [];
-      const event = events.find(e => e.id === id);
-      if (!event) return;
-      editingEventId = id;
-      editingIsPast = isPast;
-
-      const prefix = isPast ? "pastEvent" : "event";
-      document.getElementById(prefix + "Description").value = event.description;
-      if (!isPast) {
-        document.getElementById("eventDescriptionSpanish").value = event.descriptionSpanish || "";
-        document.getElementById(prefix + "Date").value = event.date;
-        document.getElementById(prefix + "Time").value = event.time;
-        document.getElementById(prefix + "Location").value = event.location;
-      }
-      document.getElementById(prefix + "ImagePreview").src = event.image;
-      document.getElementById(prefix + "ImagePreview").style.display = "block";
-    }
-  </script>
-  {% endblock %}
+  // Past edit/cancel logic
+  const pForm    = document.getElementById('pastForm');
+  const subPast  = document.getElementById('submitPastBtn');
+  const canPast  = document.getElementById('cancelPastBtn');
+  document.querySelectorAll('.editPastBtn').forEach(btn => {
+    btn.onclick = e => {
+      const row = e.target.closest('tr');
+      document.getElementById('past_event_id').value        = row.dataset.id;
+      document.getElementById('descriptionPast').value      = row.querySelector('.p-desc').innerText;
+      document.getElementById('descriptionSpanishPast').value =
+        row.querySelector('.p-desc-es').innerText;
+      subPast.innerText    = 'Update Past Event';
+      canPast.style.display = 'inline';
+    };
+  });
+  canPast.onclick = () => {
+    pForm.reset();
+    document.getElementById('past_event_id').value = '';
+    subPast.innerText    = 'Create Past Event';
+    canPast.style.display = 'none';
+  };
+</script>
+{% endblock %}
