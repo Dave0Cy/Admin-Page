@@ -8,8 +8,6 @@ import os
 from bson import json_util
 from flask_bcrypt import Bcrypt
 from flask_mail import Mail, Message
-from flask import Blueprint, render_template, current_app, request, flash, redirect, url_for
-
 
 app2 = Flask(__name__, template_folder=os.path.join(os.path.dirname(__file__), 'templates'))
 app2.secret_key = "saidfl3022dlksfj"
@@ -90,30 +88,7 @@ def login():
 def dashboard():
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
-
-    try:
-        db = current_app.config['MONGO_DB']
-    except Exception as e:
-        print("Error:", e)
-        return "Error loading"
-    
-
-# Get the selected event ID from the form
-    events = request.form.get('event')
-
-# Find the selected event's description
-    selected_event = db.events.find_one({"_id": ObjectId(events)})
-    event_name = selected_event['description'] if selected_event else "Unknown Event"
-
-# Query to match Event Description and the event_name
-    matching_responses = list(db.Responses.find({"Event Description": event_name}))
-
-    for response in matching_responses:
-        response['_id'] = str(response['_id'])
-
-# Render the getReport.html template with matching responses
-    return render_template("getReport.html", responses=matching_responses)
-    
+    return render_template("dashboard.html")
 
 @app2.route('/banner', methods=['GET', 'POST'])
 def banner():
