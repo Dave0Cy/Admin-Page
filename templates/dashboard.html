@@ -106,7 +106,6 @@
   </style>
 </head>
 <body>
-
   <!-- Sidebar -->
   <div class="sidebar">
     <div class="sidebar-header">
@@ -121,6 +120,7 @@
         <li><a href="{{ url_for('newsletter') }}">NEWSLETTER PAGE</a></li>
         <li><a href="{{ url_for('banner') }}">BANNER IMAGE</a></li>
         <li><a href="{{ url_for('email_settings') }}">EMAIL SETTINGS</a></li>
+        <li><a href="{{ url_for('survey_events') }}">SURVEY RESULTS</a></li>
       </ul>
     </div>
   </div>
@@ -131,26 +131,42 @@
   <!-- Main Content -->
   <div class="main-content">
 
-      <!-- Flash messages -->
-      {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-          <div class="messages">
-            <ul>
-              {% for category, message in messages %}
-                <li class="flash-{{ category }}">{{ message }}</li>
-              {% endfor %}
-            </ul>
-          </div>
-        {% endif %}
-      {% endwith %}
+    {# Flash messages #}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="messages">
+          <ul>
+            {% for category, message in messages %}
+              <li class="flash-{{ category }}">{{ message }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    {% endwith %}
 
-    {# The main block where child templates insert content #}
-    {% block content %}
-      <!-- Default content for the dashboard if no child overrides it -->
-      <h1>Admin Dashboard</h1>
-      <p>This is the default content that appears if a child template doesn't replace it.</p>
-    {% endblock %}
+    {# Survey Events selector #}
+    {% if events %}
+      <h2>Select Survey Event</h2>
+      <label for="event">Select Event</label><br>
+      <select name="event" id="event"
+              onchange="if(this.value) window.location.href=this.value"
+              required style="margin-bottom:1rem;">
+        <option value="" disabled selected>-- Choose One --</option>
+        {% for ev in events %}
+          <option value="{{ url_for('survey_event_detail', event_id=ev._id) }}">{{ ev.description }}</option>
+        {% endfor %}
+      </select>
+    {% endif %}
+
+    {% if event %}
+      <h2>{{ event.description }}</h2>
+      {% if event.date %}
+        <p>{{ event.date }} @ {{ event.time }} — {{ event.location }}</p>
+      {% endif %}
+      {% if event.image %}
+        <img src="data:image/png;base64,{{ event.image }}" style="max-width:300px; margin-top:1rem;">
+      {% endif %}
+    {% endif %}
   </div>
-
 </body>
 </html>
