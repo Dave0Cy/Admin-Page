@@ -149,7 +149,46 @@
     {% block content %}
       <!-- Default content for the dashboard if no child overrides it -->
       <h1>Admin Dashboard</h1>
-      <p>This is the default content that appears if a child template doesn't replace it.</p>
+      <!DOCTYPE html>
+<html>
+<head>
+    <title>Survey Report</title>
+</head>
+<body>
+  <label for="event">{{ t['select_event_label'] }}</label>
+      <select name="event" id="event" required>
+        <option value="" disabled selected>-- {{ t['choose_one'] }} --</option>
+        {% for ev in survey_events %}
+          <option value="{{ ev._id }}">{{ ev.description }}</option>
+        {% endfor %}
+      </select>
+    <h1>Survey Report for Event: {{ event_name }}</h1>
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Age</th>
+            <th>Zip Code</th>
+            <th>Email</th>
+            <th>Satisfaction Level</th>
+            <th>Event Suggestions</th>
+            <th>Improvements</th>
+        </tr>
+        {% for response in responses %}
+        <tr>
+            <td>{{ response['_id'] }}</td>
+            <td>{{ response['NAME'] }}</td>
+            <td>{{ response['AGE'] }}</td>
+            <td>{{ response['ZipCode'] }}</td>
+            <td>{{ response['Email'] }}</td>
+            <td>{{ response['Satisfaction_lvl'] }}</td>
+            <td>{{ response['Event Suggestions'] }}</td>
+            <td>{{ response['Improvements'] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
     {% endblock %}
   </div>
 
