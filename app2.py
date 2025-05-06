@@ -173,20 +173,38 @@ def survey_events():
     events = mongo.db.events.find()
     return render_template("dashboard.html", events=events)
 
-# Route: Survey Responses page for selected event
 @app2.route('/survey_events/<event_id>')
 def survey_event_detail(event_id):
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
-    
-    event = mongo.db.events.find_one({"_id": ObjectId(event_id)})
+
+    # 1) Load the event itself
+    event = mongo.db.events.find_one({'_id': ObjectId(event_id)})
     if not event:
-        flash("Event not found", "danger")
+        flash("Event not found.", "danger")
         return redirect(url_for('survey_events'))
-    
-    responses = list(mongo.db.Responses.find({"Event Attended": event["description"]}))
-    
-    return render_template("survey_detail.html", event=event, responses=responses)
+    event['_id'] = str(event['_id'])
+
+    # 2) Build the dropdown list of all events
+    all_events = []
+    for e in mongo.db.events.find():
+        e['_id'] = str(e['_id'])
+        all_events.append(e)
+
+    # 3) Fetch the matching survey responses by SelectedEvent string
+    #    Adjust collection name (`responses` vs `Responses`) as needed:
+    responses = list(mongo.db.Responses.find({'SelectedEvent': event_id}))
+    # Stringify any ObjectIds in the responses for Jinja
+    for r in responses:
+        r['_id'] = str(r.get('_id'))
+
+    # 4) Render the *detail* template (which loops over `responses`)
+    return render_template(
+        'survey_detail.html',
+        events=all_events,
+        event=event,
+        responses=responses
+    )
 
 @app2.route('/email-settings', methods=['GET'])
 def email_settings():
