@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Survey Responses for {{ event.description }}</title>
+    <style>
+        /* Copy your sidebar/dashboard styles here */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            display: flex;
+            min-height: 100vh;
+            background-color: #fff;
+            position: relative;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #1A3761;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-header {
+            background-color: #1A3761;
+            color: #CFAB7A;
+            padding: 1.5rem;
+        }
+        .sidebar-content {
+            flex: 1;
+            padding: 1rem;
+            color: #fff;
+        }
+        .sidebar-content h3 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            font-weight: normal;
+        }
+        .sidebar-content hr {
+            border: none;
+            border-top: 1px solid #fff;
+             margin: 0.5rem 0 1rem;
+        }
+        .sidebar-content ul {
+            list-style: none;
+        }
+        .sidebar-content ul li {
+            margin-bottom: 1rem;
+        }
+        .sidebar-content ul li a {
+            text-decoration: none;
+            color: #CFAB7A;
+            font-weight: bold;
+        }
+        .sidebar-content ul li a:hover {
+            text-decoration: underline;
+        }
+        .logout-link {
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            font-size: 1rem;
+            color: #1A3761;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .logout-link:hover {
+            text-decoration: underline;
+        }
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            margin-left: 0;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+        th {
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <div class="sidebar-header">
+        <h2>ADMIN EDITOR</h2>
+    </div>
+    <div class="sidebar-content">
+        <h3>WELCOME, ADMIN</h3>
+        <hr>
+        <ul>
+            <li><a href="{{ url_for('edit_events') }}">EDIT EVENTS</a></li>
+            <li><a href="{{ url_for('display') }}">DISPLAY PAGE</a></li>
+            <li><a href="{{ url_for('newsletter') }}">NEWSLETTER PAGE</a></li>
+            <li><a href="{{ url_for('banner') }}">BANNER IMAGE</a></li>
+            <li><a href="{{ url_for('email_settings') }}">EMAIL SETTINGS</a></li>
+            <li><a href="{{ url_for('survey_events') }}">SURVEY RESULTS</a></li>
+        </ul>
+    </div>
+</div>
+
+<!-- Logout Link -->
+<a class="logout-link" href="{{ url_for('logout') }}">LOG OUT</a>
+
+<!-- Main Content -->
+<div class="main-content">
+
+<h1>Survey Responses for "{{ event.description }}"</h1>
+
+<a href="{{ url_for('survey_events') }}">⬅️ Back to Events</a>
+
+{% if responses %}
+    <table>
+        <thead>
+            <tr>
+                <th>NAME</th>
+                <th>AGE</th>
+                <th>ZipCode</th>
+                <th>Email</th>
+                <th>Media</th>
+                <th>Satisfaction Level</th>
+                <th>Event Suggestions</th>
+                <th>Improvements</th>
+                <th>Receive Notifications</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for resp in responses %}
+            <tr>
+                <td>{{ resp.get('NAME', 'N/A') }}</td>
+                <td>{{ resp.get('AGE', 'N/A') }}</td>
+                <td>{{ resp.get('ZipCode', 'N/A') }}</td>
+                <td>{{ resp.get('Email', 'N/A') }}</td>
+                <td>{{ resp.get('Media', 'N/A') }}</td>
+                <td>{{ resp.get('Satisfaction_lvl', 'N/A') }}</td>
+                <td>{{ resp.get('Event Suggestions', 'N/A') }}</td>
+                <td>{{ resp.get('Improvements', 'N/A') }}</td>
+                <td>{{ resp.get('receive noti', 'N/A') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No survey responses found for this event.</p>
+{% endif %}
+
+</div>
+
+</body>
+</html>

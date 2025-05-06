@@ -107,66 +107,63 @@
 </head>
 <body>
   <!-- Sidebar -->
-  <div class="sidebar">
-    <div class="sidebar-header">
+<div class="sidebar">
+  <div class="sidebar-header">
       <h2>ADMIN EDITOR</h2>
-    </div>
-    <div class="sidebar-content">
+  </div>
+  <div class="sidebar-content">
       <h3>WELCOME, ADMIN</h3>
       <hr>
       <ul>
-        <li><a href="{{ url_for('edit_events') }}">EDIT EVENTS</a></li>
-        <li><a href="{{ url_for('display') }}">DISPLAY PAGE</a></li>
-        <li><a href="{{ url_for('newsletter') }}">NEWSLETTER PAGE</a></li>
-        <li><a href="{{ url_for('banner') }}">BANNER IMAGE</a></li>
-        <li><a href="{{ url_for('email_settings') }}">EMAIL SETTINGS</a></li>
-        <li><a href="{{ url_for('survey_events') }}">SURVEY RESULTS</a></li>
+          <li><a href="{{ url_for('edit_events') }}">EDIT EVENTS</a></li>
+          <li><a href="{{ url_for('display') }}">DISPLAY PAGE</a></li>
+          <li><a href="{{ url_for('newsletter') }}">NEWSLETTER PAGE</a></li>
+          <li><a href="{{ url_for('banner') }}">BANNER IMAGE</a></li>
+          <li><a href="{{ url_for('email_settings') }}">EMAIL SETTINGS</a></li>
+          <li><a href="{{ url_for('survey_events') }}">SURVEY RESULTS</a></li>
+      </ul>
+  </div>
+</div>
+
+<!-- Logout Link -->
+<a class="logout-link" href="{{ url_for('logout') }}">LOG OUT</a>
+
+<!-- Main Content -->
+<div class="main-content">
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="messages">
+      <ul>
+        {% for category, message in messages %}
+          <li class="flash-{{ category }}">{{ message }}</li>
+        {% endfor %}
       </ul>
     </div>
-  </div>
-
-  <!-- Logout Link -->
-  <a class="logout-link" href="{{ url_for('logout') }}">LOG OUT</a>
-
-  <!-- Main Content -->
-  <div class="main-content">
-
-    {# Flash messages #}
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div class="messages">
-          <ul>
-            {% for category, message in messages %}
-              <li class="flash-{{ category }}">{{ message }}</li>
-            {% endfor %}
-          </ul>
-        </div>
-      {% endif %}
-    {% endwith %}
-
-    {# Survey Events selector #}
-    {% if events %}
-      <h2>Select Survey Event</h2>
-      <label for="event">Select Event</label><br>
-      <select name="event" id="event"
-              onchange="if(this.value) window.location.href=this.value"
-              required style="margin-bottom:1rem;">
+  {% endif %}
+{% endwith %}
+{# The main block where child templates insert content #}
+    {% block content %}
+      {% if events %}
+          <h2>Select Survey Event</h2>
+          <form>
+            <select name="event" id="event"
+            onchange="if(this.value) window.location.href=this.value"
+           required style="margin-bottom:1rem;">
         <option value="" disabled selected>-- Choose One --</option>
         {% for ev in events %}
-          <option value="{{ url_for('survey_event_detail', event_id=ev._id) }}">{{ ev.description }}</option>
+            <option value="{{ url_for('survey_event_detail', event_id=ev._id) }}">
+                {{ ev.description }}
+            </option>
         {% endfor %}
-      </select>
-    {% endif %}
+    </select>
 
-    {% if event %}
-      <h2>{{ event.description }}</h2>
-      {% if event.date %}
-        <p>{{ event.date }} @ {{ event.time }} — {{ event.location }}</p>
-      {% endif %}
-      {% if event.image %}
-        <img src="data:image/png;base64,{{ event.image }}" style="max-width:300px; margin-top:1rem;">
-      {% endif %}
-    {% endif %}
-  </div>
+      </form>
+  {% else %}
+      <p>Welcome to the Admin Dashboard.</p>
+  {% endif %}
+  {% endblock %}
+</div>
+
 </body>
 </html>

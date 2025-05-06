@@ -164,36 +164,29 @@ def newsletter():
     }
     return render_template("newsletter.html", events=events, t=t)
 
+# Route: Survey Event Dropdown page
 @app2.route('/survey_events')
 def survey_events():
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
+    
+    events = mongo.db.events.find()
+    return render_template("dashboard.html", events=events)
 
-    # ← use mongo.db, not db
-    events = list(mongo.db.events.find())
-    for ev in events:
-        ev['_id'] = str(ev['_id'])
-    return render_template('dashboard.html', events=events)
-
-
-
+# Route: Survey Responses page for selected event
 @app2.route('/survey_events/<event_id>')
 def survey_event_detail(event_id):
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
-
-    # ← mongo.db here too
-    ev = mongo.db.events.find_one({'_id': ObjectId(event_id)})
-    if not ev:
-        flash("Event not found.", "danger")
+    
+    event = mongo.db.events.find_one({"_id": ObjectId(event_id)})
+    if not event:
+        flash("Event not found", "danger")
         return redirect(url_for('survey_events'))
-
-    ev['_id'] = str(ev['_id'])
-    all_events = list(mongo.db.events.find())
-    for e in all_events:
-        e['_id'] = str(e['_id'])
-
-    return render_template('dashboard.html', events=all_events, event=ev)
+    
+    responses = list(mongo.db.Responses.find({"Event Attended": event["description"]}))
+    
+    return render_template("survey_detail.html", event=event, responses=responses)
 
 @app2.route('/email-settings', methods=['GET'])
 def email_settings():
@@ -385,4 +378,4 @@ def delete_past_event(id):
 
 
 if __name__ == "__main__":
-    app2.run()
+    app2.run(debug=True)
